@@ -221,3 +221,18 @@ def book_reservation(user_id: str, experience_id: str) -> str:
         return json.dumps({"error": str(e)})
     finally:
         session.close()
+
+
+@tool
+def get_retention_policy() -> str:
+    """
+    Get the current retention policy and offers.
+    """
+    # In a real app, this might come from a CMS or DB
+    policy = {
+        "cancellation_fee": "None if cancelled 24h before renewal.",
+        "pause_option": "Can pause for up to 3 months. Data is preserved.",
+        "retention_offer": "10% discount for the next 3 months if they stay.",
+        "refund_policy": "No refunds for partial months. Strictly no refunds for used passes.",
+    }
+    return json.dumps(policy)

@@ -8,6 +8,7 @@ A Multi-Agent AI Support System built with **LangChain** and **LangGraph**. It r
 - **Tool Use**: Agents can look up users, check subscriptions, book classes, and cancel reservations.
 - **Persistence**: Remembers user context across chat sessions using `SqliteSaver`.
 - **Audit Logging**: All interactions are logged to `TicketMessage` in the DB.
+- **Sentiment & Urgency**: Triage agent automatically detects and tags user Sentiment (e.g. "Frustrated") and Urgency (e.g. "High").
 
 ## Setup
 

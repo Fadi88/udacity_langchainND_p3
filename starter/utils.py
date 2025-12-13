@@ -20,12 +20,12 @@ def reset_db(db_path: str, echo: bool = True):
     # Remove the file if it exists
     if os.path.exists(db_path):
         os.remove(db_path)
-        print(f"✅ Removed existing {db_path}")
+        print(f"Removed existing {db_path}")
 
     # Create a new engine and recreate tables
     engine = create_engine(f"sqlite:///{db_path}", echo=echo)
     Base.metadata.create_all(engine)
-    print(f"✅ Recreated {db_path} with fresh schema")
+    print(f"Recreated {db_path} with fresh schema")
 
 
 @contextmanager
@@ -51,7 +51,7 @@ def model_to_dict(instance):
 
 
 def chat_interface(agent: CompiledStateGraph, ticket_id: str):
-    from data.models.udahub import Ticket, TicketMessage, RoleEnum
+    from data.models.udahub import Ticket, TicketMessage, RoleEnum, AgentLog
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
     import uuid
@@ -117,6 +117,18 @@ def chat_interface(agent: CompiledStateGraph, ticket_id: str):
                 content=str(response_content),
             )
             session.add(ai_msg)
+
+            # --- Structured Logging for Rubric ---
+            # Log the final response action
+            log_entry = AgentLog(
+                log_id=f"log-{uuid.uuid4().hex[:8]}",
+                ticket_id=ticket_id,
+                agent_name="System",  # ideally we'd get the specific agent name from state if possible
+                action="Response",
+                details=str(response_content)[:200],  # Log snippet
+            )
+            session.add(log_entry)
+
             session.commit()
 
         except Exception as e:

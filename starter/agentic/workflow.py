@@ -7,11 +7,15 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from agentic.agents.billing import billing_agent
 from agentic.agents.booking import booking_agent
 from agentic.agents.tech_support import tech_agent
+from agentic.agents.retention import retention_agent
 from agentic.agents.triage import triage_chain
 
 
 class AgentState(TypedDict):
     messages: Annotated[list[BaseMessage], add_messages]
+    destination: str
+    sentiment: str
+    urgency: str
 
 
 # Wrapper nodes for the sub-agents
@@ -30,20 +34,22 @@ def tech_node(state: AgentState):
     return {"messages": result["messages"][-1]}
 
 
+def retention_node(state: AgentState):
+    result = retention_agent.invoke(state)
+    return {"messages": result["messages"][-1]}
+
+
 def triage_node(state: AgentState):
-    # Triage doesn't add messages, just routes.
-    # Logic is in the conditional edge.
-    # But we need a node to start or we use START.
-    # We'll rely on the conditional edge from START or a dedicated node.
-    # Let's have a dedicated node to ensure we route correctly.
-    # Actually, we can just return state.
-    return state
+    classification = triage_chain.invoke({"messages": state["messages"]})
+    return {
+        "destination": classification.destination,
+        "sentiment": classification.sentiment,
+        "urgency": classification.urgency,
+    }
 
 
 def route_logic(state: AgentState):
-    # Run the triage chain on the messages
-    classification = triage_chain.invoke({"messages": state["messages"]})
-    return classification.destination
+    return state["destination"]
 
 
 # Define the graph
@@ -53,6 +59,7 @@ builder.add_node("triage", triage_node)
 builder.add_node("billing_agent", billing_node)
 builder.add_node("booking_agent", booking_node)
 builder.add_node("tech_agent", tech_node)
+builder.add_node("retention_agent", retention_node)
 
 # Start ---> Triage ---> [Conditional] ---> Agents ---> End
 builder.add_edge(START, "triage")
@@ -64,6 +71,7 @@ builder.add_conditional_edges(
         "billing_agent": "billing_agent",
         "booking_agent": "booking_agent",
         "tech_agent": "tech_agent",
+        "retention_agent": "retention_agent",
     },
 )
 
@@ -71,6 +79,7 @@ builder.add_conditional_edges(
 builder.add_edge("billing_agent", END)
 builder.add_edge("booking_agent", END)
 builder.add_edge("tech_agent", END)
+builder.add_edge("retention_agent", END)
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 import sqlite3
