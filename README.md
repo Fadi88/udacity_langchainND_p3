@@ -1,53 +1,42 @@
-# README Template
+# CultPass Support Agent
 
-Below is a template provided for use when building your README file for students.
+A Multi-Agent AI Support System built with **LangChain** and **LangGraph**. It routes customer queries to specialized agents, manages persistent state, and integrates with product and knowledge databases.
 
-# Project Title
+## Features
+- **Smart Routing**: Triage agent directs user queries to `Billing`, `Booking`, or `Tech Support`.
+- **RAG Powered**: Tech support agent answers from a Knowledge Base (`udahub.db`).
+- **Tool Use**: Agents can look up users, check subscriptions, book classes, and cancel reservations.
+- **Persistence**: Remembers user context across chat sessions using `SqliteSaver`.
+- **Audit Logging**: All interactions are logged to `TicketMessage` in the DB.
 
-Project description goes here.
+## Setup
 
-## Getting Started
+1. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. **Environment Variables**:
+   Create a `.env` file with your OpenAI API key:
+   ```env
+   OPENAI_API_KEY="sk-..."
+   # If using Vocareum/Udacity key:
+   # OPENAI_API_BASE="https://openai.vocareum.com/v1"
+   ```
+3. **Initialize Database**:
+   (Optional) If you want to reset the data, run the population script (if available) or use the existing `cultpass.db` and `udahub.db`.
 
-Instructions for how to get a copy of the project running on your local machine.
+## Usage
 
-### Dependencies
+Run the agent interface:
+```python
+from starter.utils import chat_interface
+from starter.agentic.workflow import orchestrator
 
+chat_interface(orchestrator, ticket_id="session-123")
 ```
-Examples here
-```
 
-### Installation
-
-Step by step explanation of how to get a dev environment running.
-
-List out the steps
-
-```
-Give an example here
-```
-
-## Testing
-
-Explain the steps needed to run any automated tests
-
-### Break Down Tests
-
-Explain what each test does and why
-
-```
-Examples here
-```
-## Project Instructions
-
-This section should contain all the student deliverables for this project.
-
-## Built With
-
-* [Item1](www.item1.com) - Description of item
-* [Item2](www.item2.com) - Description of item
-* [Item3](www.item3.com) - Description of item
-
-Include all items used to build project.
-
-## License
-[License](../LICENSE.md)
+## Architecture
+- **Triage**: Supervisor node using GPT-4o-mini.
+- **Billing Agent**: Has access to `Subscription` and `User` tables.
+- **Booking Agent**: Can modify `Reservation` and `Experience` slots.
+- **Tech Agent**: Vector/Keyword search on `Knowledge` table.
