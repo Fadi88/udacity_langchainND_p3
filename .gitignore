@@ -1,12 +1,27 @@
+
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+
+# Environments
 .env
 .venv
 env/
 venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database
 *.db
-.DS_Store
-.checkpoints.db
-.ipynb_checkpoints/
+*.db-shm
+*.db-wal
+*.sqlite3
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
